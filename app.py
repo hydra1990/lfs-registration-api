@@ -1,10 +1,17 @@
 from flask import Flask
+from flask import request, jsonify
+import os
+import subprocess
 
 app = Flask(__name__)
 
 
 @app.route('/')
-def root():  # put application's code here
+def root():
+    """
+    The default root route, it shows nothing so far, just checking that the connection works.
+    :return: A text string notifying it works.
+    """
     return 'It works!'
 
 
