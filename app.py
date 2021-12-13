@@ -70,7 +70,7 @@ def register_email(email):
     message["Subject"] = "Thank you for registering on LizardFS"
     message["From"] = sender_email
     message["To"] = email
-    verification_url = os.environ.get("api-url") + 'verify?code=' + encoded_email.hexdigest()
+    verification_url = os.environ.get("api_url") + 'verify?code=' + encoded_email.hexdigest()
     html = """\
         <html>
             <body>
