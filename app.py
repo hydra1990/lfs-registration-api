@@ -4,6 +4,7 @@ import os
 import smtplib
 import ssl
 
+import flask
 from flask import Flask
 from flask import request
 
@@ -11,6 +12,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from dotenv import load_dotenv
+
 load_dotenv('environment.env')
 
 app = Flask(__name__)
@@ -36,10 +38,10 @@ def register():
     if 'email' in request.args:
         email_arg = request.args['email']
         user = find_user(email_arg)
-        if user != "":
-            return verify_redirect(user)
-        else:
+        if user == "":
             return register_email(email_arg)
+        else:
+            return verify_redirect(user)
     else:
         return page_not_found()
 
@@ -90,7 +92,7 @@ def register_email(email):
         server.sendmail(sender_email, email, message.as_string())
 
     # Store the information in the DB
-    new_user = open('data/' + encoded_email.hexdigest(), "w")
+    new_user = open('data/' + encoded_email.hexdigest(), "a")
     new_user.write(email + '\n')
     return "User registered with hash code: " + encoded_email.hexdigest()
 
@@ -121,6 +123,23 @@ def verify():
         return verify_redirect(code)
     else:
         page_not_found()
+
+
+def verify_redirect(code):
+    if check_valid(code):
+        packages = os.environ.get("packages_url")
+        return flask.redirect(packages)
+    else:
+        registration = os.environ.get("lfs_registration")
+        return flask.redirect(registration)
+
+
+def check_valid(code):
+    users_list = os.listdir('data')
+    for user in users_list:
+        if user == code:
+            with open(os.path.join('data/', user), 'r') as f:
+                return 'valid' in f.read()
 
 
 if __name__ == '__main__':
