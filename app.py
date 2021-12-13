@@ -11,7 +11,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv('environment.env')
 
 app = Flask(__name__)
 
@@ -60,9 +60,6 @@ def email_exists(email):
 
 
 def register_email(email):
-    encoded_email = create_hash_code(email)
-    new_user = open('data/' + encoded_email.hexdigest(), "w")
-    new_user.write(email)
     # Send confirmation email
     smtp_server = os.environ.get("smtp_server")
     port = os.environ.get("smtp_port")
@@ -90,6 +87,11 @@ def register_email(email):
     with smtplib.SMTP_SSL(smtp_server, int(port), context=context) as server:
         server.login(sender_email, password)
         server.sendmail(sender_email, email, message.as_string())
+
+    # Store the information in the DB
+    encoded_email = create_hash_code(email)
+    new_user = open('data/' + encoded_email.hexdigest(), "w")
+    new_user.write(email)
     return "User registered with hash code: " + encoded_email.hexdigest()
 
 
