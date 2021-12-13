@@ -7,6 +7,9 @@ import ssl
 from flask import Flask
 from flask import request
 
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.DEBUG)
@@ -51,14 +54,28 @@ def register_email(email):
     port = 465
     sender_email = "hydradev41@gmail.com"
     password = "simripoll2021"
-    message = """\
-        Subject: Thank you for registering on LizardFS
-
-        Click on the link below to access the download page for packages."""
+    message = MIMEMultipart("alternative")
+    message["Subject"] = "Thank you for registering on LizardFS"
+    message["From"] = sender_email
+    message["To"] = email
+    html = """\
+        <html>
+            <body>
+                <p>
+                    Click on the link below to access the download page for packages.
+                </p>
+                
+                <p>
+                    <a href="#">Packages</a>
+                </p>
+            </body>
+        </html>
+        """
+    message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
         server.login(sender_email, password)
-        server.sendmail(sender_email, email, message)
+        server.sendmail(sender_email, email, message.as_string())
     return "User registered with hash code: " + encoded_email.hexdigest()
 
 
