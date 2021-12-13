@@ -35,28 +35,27 @@ def register():
     """
     if 'email' in request.args:
         email_arg = request.args['email']
-        users_list = os.listdir('data')
-        if users_list.__len__() > 0:
-            if email_exists(email_arg):
-                # success. redirect to the binary packages site
-                return "Success!! Email: " + email_arg
-            else:
-                return register_email(email_arg)
+        user = find_user(email_arg)
+        if user != "":
+            return verify_redirect(user)
         else:
             return register_email(email_arg)
     else:
         return page_not_found()
 
 
-def email_exists(email):
-    exists = 0
+def find_user(email):
     users_list = os.listdir('data')
-    for user in users_list:
-        with open(os.path.join('data/', user), 'r') as f:
-            email_str = f.read()
-            if email == email_str:
-                exists = 1
-    return bool(exists)
+    if users_list.__len__() > 0:
+        for user in users_list:
+            with open(os.path.join('data/', user), 'r') as f:
+                email_str = f.readline()
+                if email == email_str.strip():
+                    return user
+                else:
+                    return ""
+    else:
+        return register_email(email)
 
 
 def register_email(email):
@@ -92,7 +91,7 @@ def register_email(email):
 
     # Store the information in the DB
     new_user = open('data/' + encoded_email.hexdigest(), "w")
-    new_user.write(email)
+    new_user.write(email + '\n')
     return "User registered with hash code: " + encoded_email.hexdigest()
 
 
@@ -118,8 +117,8 @@ def verify():
         for user in users_list:
             if user == code:
                 with open(os.path.join('data/', user), 'a') as f:
-                    f.write("\n valid")
-        return code
+                    f.write("valid" + '\n')
+        return verify_redirect(code)
     else:
         page_not_found()
 
