@@ -10,6 +10,9 @@ from flask import request
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+from dotenv import load_dotenv
+load_dotenv()
+
 app = Flask(__name__)
 
 logging.basicConfig(level=logging.DEBUG)
@@ -28,7 +31,7 @@ def root():
 def register():
     """
     Registers the email of a user that will select to download the binary packages of the latest release candidate.
-    :return: A text string notifying it works.
+    :return: A success notification if it works or an error message if it fails.
     """
     if 'email' in request.args:
         email_arg = request.args['email']
@@ -45,15 +48,26 @@ def register():
         return page_not_found()
 
 
+def email_exists(email):
+    exists = 0
+    users_list = os.listdir('data')
+    for user in users_list:
+        with open(os.path.join('data/', user), 'r') as f:
+            email_str = f.read()
+            if email == email_str:
+                exists = 1
+    return bool(exists)
+
+
 def register_email(email):
     encoded_email = create_hash_code(email)
     new_user = open('data/' + encoded_email.hexdigest(), "w")
     new_user.write(email)
     # Send confirmation email
-    smtp_server = "smtp.gmail.com"
-    port = 465
-    sender_email = "hydradev41@gmail.com"
-    password = "simripoll2021"
+    smtp_server = os.environ.get("smtp_server")
+    port = os.environ.get("smtp_port")
+    sender_email = os.environ.get("contact_email")
+    password = os.environ.get("contact_pass")
     message = MIMEMultipart("alternative")
     message["Subject"] = "Thank you for registering on LizardFS"
     message["From"] = sender_email
@@ -66,41 +80,45 @@ def register_email(email):
                 </p>
                 
                 <p>
-                    <a href="#">Packages</a>
+                    <a href="#">Verify email</a>
                 </p>
             </body>
         </html>
         """
     message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
-    with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+    with smtplib.SMTP_SSL(smtp_server, int(port), context=context) as server:
         server.login(sender_email, password)
         server.sendmail(sender_email, email, message.as_string())
     return "User registered with hash code: " + encoded_email.hexdigest()
-
-
-def email_exists(email):
-    exists = 0
-    users_list = os.listdir('data')
-    app.logger.info(users_list)
-    for user in users_list:
-        app.logger.info(user)
-        with open(os.path.join('data/', user), 'r') as f:
-            email_str = f.read()
-            app.logger.info(email_str)
-            if email == email_str:
-                exists = 1
-    return bool(exists)
-
-
-def page_not_found():
-    return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 
 def create_hash_code(email):
     email_code = email + "hydra"
     encoded_email = hashlib.md5(email_code.encode())
     return encoded_email
+
+
+def page_not_found():
+    return "<h1>404</h1><p>The resource could not be found.</p>", 404
+
+
+@app.route('/verify', methods=['GET'])
+def verify():
+    """
+    Verifies that the code sent from the verification link sent by email is valid, and activates the user.
+    :return: A text string notifying it works.
+    """
+    if 'code' in request.args:
+        code = request.args['code']
+        users_list = os.listdir('data')
+        for user in users_list:
+            if user == code:
+                with open(os.path.join('data/', user), 'a') as f:
+                    f.write("valid")
+        return code
+    else:
+        page_not_found()
 
 
 if __name__ == '__main__':
