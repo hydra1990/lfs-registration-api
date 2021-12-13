@@ -1,7 +1,7 @@
 from flask import Flask
 from flask import request
 import os
-import base64
+import hashlib
 import logging
 
 app = Flask(__name__)
@@ -27,7 +27,7 @@ def register():
     if 'email' in request.args:
         email_arg = request.args['email']
         users_list = os.listdir('data')
-        if users_list.__sizeof__() > 0:
+        if users_list.__len__() > 0:
             if email_exists(email_arg):
                 # success. redirect to the binary packages site
                 return "Success!! Email: " + email_arg
@@ -40,7 +40,10 @@ def register():
 
 
 def register_email(email):
-    return "That email is not in the DB: " + email
+    encoded_email = create_hash_code(email)
+    new_user = open('data/' + encoded_email.hexdigest(), "w")
+    new_user.write(email)
+    return "User registered with hash code: " + encoded_email.hexdigest()
 
 
 def email_exists(email):
@@ -61,8 +64,10 @@ def page_not_found():
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 
-def create_hash_code(email: str):
-    return base64.standard_b64encode(bytearray(email + 'hydra'))
+def create_hash_code(email):
+    email_code = email + "hydra"
+    encoded_email = hashlib.md5(email_code.encode())
+    return encoded_email
 
 
 if __name__ == '__main__':
