@@ -60,6 +60,7 @@ def email_exists(email):
 
 
 def register_email(email):
+    encoded_email = create_hash_code(email)
     # Send confirmation email
     smtp_server = os.environ.get("smtp_server")
     port = os.environ.get("smtp_port")
@@ -69,6 +70,7 @@ def register_email(email):
     message["Subject"] = "Thank you for registering on LizardFS"
     message["From"] = sender_email
     message["To"] = email
+    verification_url = os.environ.get("api-url") + 'verify?code=' + encoded_email.hexdigest()
     html = """\
         <html>
             <body>
@@ -77,11 +79,11 @@ def register_email(email):
                 </p>
                 
                 <p>
-                    <a href="#">Verify email</a>
+                    <a href="%s">Verify email</a>
                 </p>
             </body>
         </html>
-        """
+        """ % verification_url
     message.attach(MIMEText(html, "html"))
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL(smtp_server, int(port), context=context) as server:
@@ -89,7 +91,6 @@ def register_email(email):
         server.sendmail(sender_email, email, message.as_string())
 
     # Store the information in the DB
-    encoded_email = create_hash_code(email)
     new_user = open('data/' + encoded_email.hexdigest(), "w")
     new_user.write(email)
     return "User registered with hash code: " + encoded_email.hexdigest()
@@ -117,7 +118,7 @@ def verify():
         for user in users_list:
             if user == code:
                 with open(os.path.join('data/', user), 'a') as f:
-                    f.write("valid")
+                    f.write("\n valid")
         return code
     else:
         page_not_found()
