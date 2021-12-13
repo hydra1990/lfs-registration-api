@@ -1,8 +1,11 @@
-from flask import Flask
-from flask import request
-import os
 import hashlib
 import logging
+import os
+import smtplib
+import ssl
+
+from flask import Flask
+from flask import request
 
 app = Flask(__name__)
 
@@ -43,6 +46,19 @@ def register_email(email):
     encoded_email = create_hash_code(email)
     new_user = open('data/' + encoded_email.hexdigest(), "w")
     new_user.write(email)
+    # Send confirmation email
+    smtp_server = "smtp.gmail.com"
+    port = 465
+    sender_email = "hydradev41@gmail.com"
+    password = "simripoll2021"
+    message = """\
+        Subject: Thank you for registering on LizardFS
+
+        Click on the link below to access the download page for packages."""
+    context = ssl.create_default_context()
+    with smtplib.SMTP_SSL(smtp_server, port, context=context) as server:
+        server.login(sender_email, password)
+        server.sendmail(sender_email, email, message)
     return "User registered with hash code: " + encoded_email.hexdigest()
 
 
