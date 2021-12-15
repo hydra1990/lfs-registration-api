@@ -1,2 +1,1 @@
 Flask~=2.0.2
-python-dotenv~=0.19.2
