@@ -7,11 +7,13 @@ import ssl
 import flask
 from flask import Flask
 from flask import request
+from flask_cors import CORS, cross_origin
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
+CORS(app, support_credentials=True)
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -25,7 +27,8 @@ def root():
     return 'It works!'
 
 
-@app.route('/register', methods=['GET'])
+@app.route('/register', methods=['POST'])
+@cross_origin()
 def register():
     """
     Registers the email of a user that will select to download the binary packages of the latest release candidate.
@@ -104,6 +107,7 @@ def page_not_found():
 
 
 @app.route('/verify', methods=['GET'])
+@cross_origin()
 def verify():
     """
     Verifies that the code sent from the verification link sent by email is valid, and activates the user.
