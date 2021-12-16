@@ -59,15 +59,15 @@ def find_user(email):
 def register_email(email):
     encoded_email = create_hash_code(email)
     # Send confirmation email
-    smtp_server = os.environ.get("smtp_server")
-    port = os.environ.get("smtp_port")
-    sender_email = os.environ.get("contact_email")
-    password = os.environ.get("contact_pass")
+    smtp_server = os.environ.get("SMTP_SERVER")
+    port = os.environ.get("SMTP_PORT")
+    sender_email = os.environ.get("CONTACT_EMAIL")
+    password = os.environ.get("CONTACT_PASS")
     message = MIMEMultipart("alternative")
     message["Subject"] = "Thank you for registering on LizardFS"
     message["From"] = sender_email
     message["To"] = email
-    verification_url = os.environ.get("api_url") + 'verify?code=' + encoded_email.hexdigest()
+    verification_url = os.environ.get("API_URL") + 'verify?code=' + encoded_email.hexdigest()
     html = """\
         <html>
             <body>
@@ -123,10 +123,10 @@ def verify():
 
 def verify_redirect(code):
     if check_valid(code):
-        packages = os.environ.get("packages_url")
+        packages = os.environ.get("PACKAGES_URL")
         return flask.redirect(packages)
     else:
-        registration = os.environ.get("lfs_registration")
+        registration = os.environ.get("LFS_REGISTRATION")
         return flask.redirect(registration)
 
 
