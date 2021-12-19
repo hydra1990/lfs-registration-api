@@ -47,6 +47,7 @@ def register():
 
 def find_user(email):
     if os.path.exists('data'):
+        users_list = os.listdir('data')
         if users_list.__len__() > 0:
             for user in users_list:
                 with open(os.path.join('data/', user), 'r') as f:
@@ -60,9 +61,6 @@ def find_user(email):
     else:
         os.makedirs('data')
         return ""
-
-
-users_list = os.listdir('data')
 
 
 def register_email(email):
