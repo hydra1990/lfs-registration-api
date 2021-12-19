@@ -46,17 +46,23 @@ def register():
 
 
 def find_user(email):
-    users_list = os.listdir('data')
-    if users_list.__len__() > 0:
-        for user in users_list:
-            with open(os.path.join('data/', user), 'r') as f:
-                email_str = f.readline()
-                if email == email_str.strip():
-                    return user
-                else:
-                    return ""
+    if os.path.exists('data'):
+        if users_list.__len__() > 0:
+            for user in users_list:
+                with open(os.path.join('data/', user), 'r') as f:
+                    email_str = f.readline()
+                    if email == email_str.strip():
+                        return user
+                    else:
+                        return ""
+        else:
+            return register_email(email)
     else:
-        return register_email(email)
+        os.makedirs('data')
+        return ""
+
+
+users_list = os.listdir('data')
 
 
 def register_email(email):
