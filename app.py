@@ -27,8 +27,8 @@ def root():
     return 'It works!'
 
 
-@app.route('/register', methods=['POST'])
-@cross_origin()
+@app.route('/register', methods=['GET', 'POST'])
+@cross_origin(origin='*', headers=['Content- Type', 'Authorization'])
 def register():
     """
     Registers the email of a user that will select to download the binary packages of the latest release candidate.
@@ -107,7 +107,7 @@ def page_not_found():
 
 
 @app.route('/verify', methods=['GET'])
-@cross_origin()
+@cross_origin(origin='*', headers=['Content- Type', 'Authorization'])
 def verify():
     """
     Verifies that the code sent from the verification link sent by email is valid, and activates the user.
